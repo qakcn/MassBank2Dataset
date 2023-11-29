@@ -1,0 +1,13 @@
+name: massbank2dataset
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - tqdm
+  - pandas
+  - jpype1
+  - openbabel
+  - sqlalchemy
+  - bitarray
+  - rdkit
