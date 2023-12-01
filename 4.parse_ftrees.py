@@ -67,7 +67,7 @@ def print_orphan(print_queue):
         TS.p(f"Orphan {TS.blue(cnt)}: {TS.cyan(spectrum_id)}::{TS.yellow(compound_id)}::{TS.magenta(compound_name)}")
 
 # Initialization
-TS.register_tqdm(tqdm)
+TS.register_printer(tqdm.write)
 
 if not spectra_ftrees_file.is_file():
     TS.p(TS.red("Error loading ftrees spectra from pickle file...file not exists."))

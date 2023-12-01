@@ -58,7 +58,7 @@ slice_num = 12
 ##################################################
 
 # Initialization
-TS.register_tqdm(tqdm)
+TS.register_printer(tqdm.write)
 is_spectra_peaked_named = is_spectra_ftrees = False
 
 

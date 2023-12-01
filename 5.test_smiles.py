@@ -49,7 +49,7 @@ spectra_fp_file = intermediate_path / "spectra.fp.pkl"
 # End of parameters, do not edit below this line #
 ##################################################
 
-TS.register_tqdm(tqdm)
+TS.register_printer(tqdm.write)
 
 if spectra_ftrees_parsed_file.is_file():
     TS.ip(f"Read ftree parsed spectra file...")

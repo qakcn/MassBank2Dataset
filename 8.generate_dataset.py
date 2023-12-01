@@ -44,14 +44,14 @@ spectra_fp_without_csi_fingerid_file = intermediate_path / "spectra.fp.no_csi_fi
 spectra_fp_within_csi_fingerid_file = intermediate_path / "spectra.fp.csi_fid.pkl"
 counter_file = intermediate_path / "counter.nopd.pkl"
 
-datasets_without_csi_file = output_path / "datasets.no_csi_fid.pkl"
-datasets_within_csi_file = output_path / "datasets.csi_fid.pkl"
+datasets_without_csi_file = output_path / "dataset.no_csi_fid.pkl"
+datasets_within_csi_file = output_path / "dataset.csi_fid.pkl"
 
 ##################################################
 # End of parameters, do not edit below this line #
 ##################################################
 
-TS.register_tqdm(tqdm)
+TS.register_printer(tqdm.write)
 
 elemset = set()
 
@@ -64,17 +64,17 @@ TS.p(TS.green("Done."))
 
 TS.p("Calculating for spectra within CSI:FingerID...")
 tqdm.pandas(desc=f"    Calculating", total=spectra_csi.shape[0], ncols=100)
-datasets_within_csi = spectra_csi.progress_apply(calc_dataset_row, axis=1, counter=counter, elemset=elemset)
+dataset_within_csi = spectra_csi.progress_apply(calc_dataset_row, axis=1, counter=counter, elemset=elemset)
 TS.p(TS.green("Done."))
 
 TS.p("Calculating for spectra without CSI:FingerID...")
 tqdm.pandas(desc="    Calculating", total=spectra_no_csi.shape[0], ncols=100)
-datasets_without_csi = spectra_no_csi.progress_apply(calc_dataset_row, axis=1, counter=counter, elemset=elemset)
+dataset_without_csi = spectra_no_csi.progress_apply(calc_dataset_row, axis=1, counter=counter, elemset=elemset)
 TS.p(TS.green("Done."))
 
 TS.ip("Saving datasets...")
 with open(output_path/"element.nopd.pkl", "wb") as f:
     pickle.dump(elemset, f)
-datasets_within_csi.to_pickle(datasets_within_csi_file)
-datasets_without_csi.to_pickle(datasets_without_csi_file)
+dataset_within_csi.to_pickle(datasets_within_csi_file)
+dataset_without_csi.to_pickle(datasets_without_csi_file)
 TS.p(TS.green("Done."))

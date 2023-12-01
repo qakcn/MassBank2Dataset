@@ -55,7 +55,7 @@ sa_mysql_str = "mysql+mysqldb://username:password@localhost:3306/massbank"
 
 # Initialization
 is_spectra = is_spectra_peaked = is_spectra_peaked_named = False
-TS.register_tqdm(tqdm)
+TS.register_printer(tqdm.write)
 
 if spectra_peaked_named_file.is_file():
     TS.ip("Loading peaked & named spectra from pickle file...")

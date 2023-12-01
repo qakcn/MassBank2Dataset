@@ -54,7 +54,7 @@ spectra_fp_within_csi_fingerid_file = intermediate_path / "spectra.fp.csi_fid.pk
 ##################################################
 
 is_spectra_standardized = is_csi_fingerid = False
-TS.register_tqdm(tqdm)
+TS.register_printer(tqdm.write)
 
 if csi_fingerid_file.is_file():
     TS.ip(f"Read CSI:FingerID file...")

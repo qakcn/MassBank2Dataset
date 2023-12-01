@@ -61,7 +61,7 @@ class TS(metaclass=TSMeta):
         white_bg = "\033[47m",
     )
 
-    tqdm_write = None
+    printer = print
 
     @classmethod
     def stylize(cls, style: str, text) -> str:
@@ -84,15 +84,12 @@ class TS(metaclass=TSMeta):
         return spaces*level + str(text)
     
     @classmethod
-    def register_tqdm(cls, tqdm) -> None:
-        cls.tqdm_write = tqdm.write
+    def register_printer(cls, printer) -> None:
+        cls.printer = printer
     
     @classmethod
     def print(cls, text, flush: bool = True, **kwargs) -> None:
-        if cls.tqdm_write is not None:
-            cls.tqdm_write(text, **kwargs)
-        else:
-            print(text, flush=flush, **kwargs)
+        cls.printer(text, flush=flush, **kwargs)
     
     @classmethod
     def inline_print(cls, text, end: str = "", **kwargs) -> None:

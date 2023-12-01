@@ -69,7 +69,7 @@ def info_printer(print_queue: Queue):
         "end": "End slice.",
     }
     tqdm_bars = {}
-    TS.register_tqdm(tqdm)
+    TS.register_printer(tqdm.write)
     while True:
         msgtype, msgdata = print_queue.get()
         if msgtype == "end_all":
@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
     is_spectra_fped = False
 
-    TS.register_tqdm(tqdm)
+    TS.register_printer(tqdm.write)
 
     if len(list(fp_slices_path.glob("*.pkl"))) == slice_num:
         is_spectra_fped = True
