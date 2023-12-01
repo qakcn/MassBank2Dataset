@@ -11,3 +11,4 @@ dependencies:
   - sqlalchemy
   - bitarray
   - rdkit
+  - mysqlclient
