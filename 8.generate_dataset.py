@@ -30,6 +30,7 @@ from tqdm import tqdm
 
 # Local imports
 from classes import *
+from classes.Fingerprint import calc_dataset_row
 
 ##################################################
 # Parameters that can be edited by the user      #

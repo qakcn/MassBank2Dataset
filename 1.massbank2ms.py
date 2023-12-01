@@ -30,6 +30,7 @@ from tqdm import tqdm
 
 # Local imports
 from classes import *
+from classes.Functions import peak_spectra_row, name_spectra_row, generate_ms_file_row
 
 ##################################################
 # Parameters that can be edited by the user      #

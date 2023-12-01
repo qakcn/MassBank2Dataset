@@ -29,7 +29,7 @@ from tqdm import tqdm
 
 # Local imports
 from classes import *
-
+from classes.Fingerprint import standardize_row
 
 
 ##################################################

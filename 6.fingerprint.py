@@ -31,6 +31,8 @@ from tqdm import tqdm
 
 # Local imports
 from classes import *
+from classes.Functions import df_add_columns
+from classes.Fingerprint import fingerprint_row, start_jvm, shutdown_jvm
 
 class Fingerprint(Process):
     def __init__(self, spectra_slice, slice: int, slice_total,  fp_slices_path, print_queue: Queue):

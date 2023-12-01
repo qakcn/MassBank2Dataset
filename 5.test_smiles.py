@@ -29,6 +29,8 @@ from tqdm import tqdm
 
 # Local imports
 from classes import *
+from classes.Functions import df_add_columns
+from classes.Fingerprint import test_molstr_row, start_jvm, shutdown_jvm
 
 ##################################################
 # Parameters that can be edited by the user      #

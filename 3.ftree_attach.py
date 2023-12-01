@@ -31,6 +31,7 @@ from tqdm import tqdm
 
 # Local imports
 from classes import *
+from classes.FragmentTree import process_ftree_file
 
 ##################################################
 # Parameters that can be edited by the user      #

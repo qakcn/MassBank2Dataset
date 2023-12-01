@@ -23,12 +23,14 @@ if __name__ == "__main__":
     raise SystemExit("This script is not meant to be run directly")
 
 # PSL imports
-import math
 from typing import Optional, Dict
+from pathlib import Path
+import json
 
 # Local imports
-from .VocabUtils import *
+from .Functions import get_hashkey, inst_profile
 
+# Classes
 class FragmentTree:
     def __init__(self, spectrum_id, attrs, compound: dict):
         self.spectrum_id = spectrum_id
@@ -46,7 +48,7 @@ class FragmentTree:
     def getRootNode(self):
         return self.getNode(0)
     
-    def getNode(self, idx):
+    def getNode(self, idx: int):
         return self.nodes[idx]
 
     def addEdge(self, from_idx: int, to_idx: int, attrs: dict = {}):
@@ -142,3 +144,87 @@ class FragmentTreeEdge:
     
     def getRootFT(self):
         return self.rootFT
+
+# Functions
+def process_ftree_file(row, ftrees_path: Path, tqdm_bars: dict):
+    spectrum_id = row["spectrum_id"]
+    
+    profile = inst_profile(row["instrument_type"], row["instrument"])
+    profile_path = ftrees_path / profile
+
+    file = list(profile_path.glob(f"*_{spectrum_id}_*.json"))
+
+    if len(file) == 0:
+        return None
+    
+    tqdm_bars[profile].update(1)
+    
+    with open(file[0], "r") as f:
+        ftree_json = json.load(f)
+    
+    return ftree_json
+
+def parse_ftree_row(row, vocab: dict, counter: dict, orphan_list: list, print_queue = None) -> FragmentTree:
+    spectrum_id = row["spectrum_id"]
+    compound_id = row["compound_id"]
+    compound_name = row["compound_name"][0]
+
+    ftree_json = row["ftree"]
+
+    if len(ftree_json["fragments"]) == 1:
+        orphan_list.append(row)
+        print_queue.put((spectrum_id, compound_id, compound_name))
+
+        return None
+    
+    sample_data=row.to_dict()
+    del sample_data["ftree"]
+    hashkey = get_hashkey(spectrum_id)
+    vocab["sample"][hashkey] = sample_data
+    del sample_data
+
+    fragments = ftree_json["fragments"]
+    losses = ftree_json["losses"]
+    del ftree_json["fragments"]
+    del ftree_json["losses"]
+
+    compound_columns = ["compound_id", "compound_name", "formula", "exactmass", "smiles", "inchi", "inchikey", "cas", "pubchem"]
+
+    ftree = FragmentTree(spectrum_id, ftree_json, row[compound_columns].to_dict())
+
+    fragment_hashkey = {}
+
+    for fragment in fragments:
+        if fragment["id"] == 0:
+            ftree.getRootNode().setAttrs(fragment)
+        else:
+            ftree.addNode(fragment["id"], fragment)
+            hashkey = get_hashkey(fragment["molecularFormula"])
+            fragment_hashkey[fragment["id"]] = hashkey
+            vocab["fragment"][hashkey] = fragment["molecularFormula"]
+            ftree.getNode(fragment["id"]).setAttr("hashkey", hashkey)
+
+    for hashkey in set(fragment_hashkey.values()):
+        key = (hashkey, "fragment")
+        counter[key] = 1 if key not in counter else counter[key]+1
+
+    for loss in losses:
+        from_id = loss["source"]
+        to_id = loss["target"]
+        ftree.addEdge(from_id, to_id, loss)
+        if from_id != 0:
+            loss_data = [loss["molecularFormula"], fragment_hashkey[from_id], fragment_hashkey[to_id]]
+            hashkey = get_hashkey(loss_data)
+            vocab["loss"][hashkey] = loss_data
+            ftree.getEdge(from_id, to_id).setAttr("hashkey", hashkey)
+            key = (hashkey, "loss")
+            counter[key] = 1 if key not in counter else counter[key]+1
+            key = (fragment_hashkey[from_id], "fragment_in_loss")
+            counter[key] = 1 if key not in counter else counter[key]+1
+            key = (fragment_hashkey[to_id], "fragment_in_loss")
+            counter[key] = 1 if key not in counter else counter[key]+1
+
+            hashkey = get_hashkey("loss_total")
+            key = (hashkey, "loss_total")
+            counter[key] = 1 if key not in counter else counter[key]+1
+    return ftree

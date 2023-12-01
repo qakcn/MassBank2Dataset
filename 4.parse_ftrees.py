@@ -23,6 +23,8 @@
 # PSL imports
 from pathlib import Path
 import pickle
+from threading import Thread
+from queue import Queue
 
 # Third party imports
 import pandas as pd
@@ -30,6 +32,8 @@ from tqdm import tqdm
 
 # Local imports
 from classes import *
+from classes.Functions import get_hashkey
+from classes.FragmentTree import parse_ftree_row
 
 ##################################################
 # Parameters that can be edited by the user      #
@@ -52,6 +56,15 @@ spectra_ftrees_unparsed_file = intermediate_path / "spectra.ftrees.unparsed.pkl"
 ##################################################
 # End of parameters, do not edit below this line #
 ##################################################
+
+def print_orphan(print_queue):
+    cnt = 0
+    while True:
+        spectrum_id, compound_id, compound_name = print_queue.get()
+        if spectrum_id is None:
+            break
+        cnt += 1
+        TS.p(f"Orphan {TS.blue(cnt)}: {TS.cyan(spectrum_id)}::{TS.yellow(compound_id)}::{TS.magenta(compound_name)}")
 
 # Initialization
 TS.register_tqdm(tqdm)
@@ -76,12 +89,20 @@ else:
 
     counter[(get_hashkey("sample_total"), "sample_total")] = total
 
+    print_queue = Queue()
+
+    pot = Thread(target=print_orphan, args=(print_queue,))
+    pot.start()
+
     tqdm.pandas(desc=f"Parsing", total=total, ncols=100)
-    spectra["ftree"] = spectra.progress_apply(parse_ftree_row, axis=1, vocab=vocab, counter=counter, orphan_list=orphan_list)
+    spectra["ftree"] = spectra.progress_apply(parse_ftree_row, axis=1, vocab=vocab, counter=counter, orphan_list=orphan_list, print_queue=print_queue)
     TS.p(TS.green(f"Parsed."))
 
+    print_queue.put((None,None,None))
+    pot.join()
+
     TS.ip("Saving spectra...")
-    mask = spectra["ftree"].apply(lambda x: isinstance(x, FragmentTree))
+    mask = spectra["ftree"].apply(lambda x: x.__class__.__name__ == "FragmentTree")
     spectra_parsed = spectra[mask].copy()
     spectra_unparsed = spectra[~mask].copy()
 
