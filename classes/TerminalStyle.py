@@ -88,8 +88,8 @@ class TS(metaclass=TSMeta):
         cls.printer = printer
     
     @classmethod
-    def print(cls, text, flush: bool = True, **kwargs) -> None:
-        cls.printer(text, flush=flush, **kwargs)
+    def print(cls, text, **kwargs) -> None:
+        cls.printer(text, **kwargs)
     
     @classmethod
     def inline_print(cls, text, end: str = "", **kwargs) -> None:
