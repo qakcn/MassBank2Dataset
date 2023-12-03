@@ -1,38 +1,24 @@
-<!--
- Copyright 2023 qakcn
- 
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
- 
-     http://www.apache.org/licenses/LICENSE-2.0
- 
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
--->
-
 This is project that generate data set from MassBank database.
 
-## Useage
+## Requirements
 
-### Preparation
+Version number of each item is only the development environment configuration, not the *minimum*, *maximum* or *exact* version you need to run.
 
-#### Requirements
+The name presented in code format is an *Anaconda* (*Miniconda*) or *PyPi* package name.
 
-  - python
-  - tqdm
-  - pandas
-  - jpype1
-  - openbabel
-  - sqlalchemy
-  - mysqlclient
-  - bitarray
-  - rdkit
+  - Python `python` <sup>3.11.6</sup>
+  - `tqdm` <sup>4.66.1</sup>
+  - `pandas` <sup>2.1.3</sup>
+  - JPype `jpype1` <sup>1.4.1</sup>
+  - OpenBabel `openbabel` <sup>3.1.1</sup>
+  - SQLAlchemy `sqlalchemy` <sup>2.0.23</sup>
+  - `mysqlclient` <sup>2.2.0</sup>
+  - `bitarray` <sup>2.8.3</sup>
+  - RDKit `rdkit` <sup>2023.09.2</sup>
+  - SIRIUS <sup>5.8.5</sup>
+  - Chemistry Development Kit (*i.e.*, CDK) <sup>2.9</sup>
 
-You can use `conda` to install requirements:
+You can use *Anaconda* (*Miniconda*) to install requirements:
 
 ```
 conda env create -f requirements.yml
@@ -40,27 +26,31 @@ conda env create -f requirements.yml
 
 You can change environment name by modifying the string after `name:` at the 1st line of `requirements.yml`.
 
-You also need SIRIUS to compute fragment trees. You can download it from [SIRIUS releases](https://github.com/boecker-lab/sirius/releases/) or just use `conda`:
+You can download **SIRIUS** from [SIRIUS releases](https://github.com/boecker-lab/sirius/releases/) or just use *Anaconda* (*Miniconda*):
 
 ```
 conda install sirius-ms -c conda-forge
 ```
 
-#### Make directory
+**CDK** will download in the following steps.
+
+## Preparation
+
+### Make directory
 
 Make three directory to store data in: `inputs`, `outputs` and `intermediates`.
 
-#### Downloads
+### Downloads
 
 1.  Download `massbank.sql` from [MassBank-data releases](https://github.com/MassBank/MassBank-data/releases/) and import it to MariaDB or MySQL DBMS.
 
-2.  Download CDK jar file (e.g. `cdk-2.9.jar`) from [CDK releases](https://github.com/cdk/cdk/releases/) and put it in `classes/jars`.
+2.  Download **CDK** jar file (e.g. `cdk-2.9.jar`) from [CDK releases](https://github.com/cdk/cdk/releases/) and put it in `classes/jars`.
 
 3.  Download `csi_fingerid-trainingstructures-positive` and `csi_fingerid-trainingstructures-negative` from [SIRIUS Website](https://bio.informatik.uni-jena.de/software/sirius/): Integration of CSI:FingerID, put them in `inputs`.
 
-### Workflow
+## Workflow
 
-#### How to run
+### How to run
 
 You can open `MassBank2Dataset.code-workspace` in *Visual Studio Code* and open each script the press <kbd>F5</kbd> to debug run.
 
@@ -68,7 +58,7 @@ Set the interpreter to `('massbank2dataset': pyg)` if you use `conda` and have n
 
 Or just run `python <script_file_name>` in terminal. **Don't forget** to change the environment by run `conda activate massbank2dataset` firstly.
 
-#### Step 1: generate data file and ms file from databae
+### Step 1: generate data file and ms file from databae
 
 Modify the `sa_mysql_str` in `1.massbank2ms.py` to satisfied your configurations, which format is:
 
@@ -80,7 +70,7 @@ Replace corresponding characters (without retaining angle brackets `<>`).
 
 Run `1.massbank2ms.py` to generate data file (defaults to `intermediates/spectra_peaks.pkl`, `inputs/compound_names.pkl` and `intermediates/spectra.pkl`) and outputs `.ms` files (defaults to `outputs/ms/`).
 
-#### Step 2: compute fragment tree in SIRIUS and export as `.json` file
+### Step 2: compute fragment tree in SIRIUS and export as `.json` file
 
 1.  Run SIRIUS if you downloaded from releases, or run `sirius-gui` if you install it through `conda`.
 
@@ -98,13 +88,13 @@ Run `1.massbank2ms.py` to generate data file (defaults to `intermediates/spectra
 
     replace the right path to `/path/to/sirius`, `/path/to/workspace` and `/path/to/export`. If you install SIRIUS through `conda`, `/path/to/sirius` is just `sirius`. `/path/to/workspace` is where you save your workspace to in previous step 2.3. `/path/to/export` is better to be `outputs/ftrees`.
 
-#### Step 3: attach ftree json to data file
+### Step 3: attach ftree json to data file
 
 Put previous step 2.5 output directory (`/path/to/export`) in `outputs` and rename it to `ftrees`.
 
 Run `3.ftree_attach.py` to attach ftree json to data file. One file will be generated (defaults to `intermediates/spectra.ftrees.pkl`).
 
-#### Step 4: parse the ftree json
+### Step 4: parse the ftree json
 
 Run `4.parse_ftrees.py` to parse. This takes file generated by step 3.
 
@@ -112,19 +102,19 @@ Two data files will be generated: one is data those can be parsed (defaults to `
 
 Extra files will also be generated: vacabularu file (defaults to `outputs/vocab.nopd.pkl`), orphan list file (defaults to `outputs/orphan.nopd.pkl`) stored those have no fragment trees and counter file (defaults to `intermediates/counter.nopd.pkl`) stored counting numbers used for calculating in Step 8.
 
-#### Step 5: test if SMILES strings are valid
+### Step 5: test if SMILES strings are valid
 
 Run `5.test_smiles.py` to test. This takes file generated by step 4.
 
 Two files will be generated: one is data those SMILES are valid (defaults to `intermediates/spectra.tested.pkl`), the other is those SMILES are invalid (defaults to `intermediates/spectra.tested.nosmiles.pkl`).
 
-#### Step 6: get fingerprints for corresponding compounds of spectra
+### Step 6: get fingerprints for corresponding compounds of spectra
 
 Run `6.fingerprint.py` to get. This takes file generated by previous step 5. 
 
 One file will be generated (defaults to `intermediates/spectra.tested.pkl`).
 
-#### Step 7: split data file according to CSI:FingerID training set
+### Step 7: split data file according to CSI:FingerID training set
 
 Run `7.split_csifingerid_training_set.py` to split data file into two files: one contains the training set (defaults to `intermediates/spectra.fp.csi_fid.pkl`), the other is training set excluded (defaults to `intermediates/spectra.fp.no_csi_fid.pkl`). 
 
@@ -132,7 +122,7 @@ This takes file generated by step 6 and downloaded CSI:FingerID training set as 
 
 Extra file will be generated to store CSI:FingerID training set (defaults to `intermediates/csi_fid.pkl`).
 
-#### Step 8: calculate the feature values of edge in fragment tree and generate data set.
+### Step 8: calculate the feature values of edge in fragment tree and generate data set.
 
 Run `8.generate_dataset.py` to calculate. This takes data file generated by step 7 and counter file generated by step 4 as inputs.
 
