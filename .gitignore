@@ -2,6 +2,7 @@ __pycache__/
 outputs/
 intermediates/
 inputs/
+*.code-workspace
 classes/jars/*.jar
 test.ipynb
 test.py
