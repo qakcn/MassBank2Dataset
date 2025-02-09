@@ -219,6 +219,13 @@ def standardize_row(row, molstr_type: str) -> pd.Series:
     std_molstr = FingerprintUtils.standardizeSmiles(molstr, molstr_type)
     return pd.Series({"std_smiles": std_molstr})
 
+def gen_molstruct_row(row) -> pd.Series:
+    molstr = row["can_smiles"]
+    mol = Chem.MolFromSmiles(molstr)
+    atom_list = [atom.GetSymbol() for atom in mol.GetAtoms()]
+    adjency_list = Chem.rdmolops.GetAdjacencyMatrix(mol, useBO=True)
+    return pd.Series({"mol_struct": (atom_list, adjency_list.tolist())})
+
 def calc_link_weight(loss: FragmentTreeEdge, counter: Dict[Tuple[str, str], int]) -> float:
     from_id = loss.getAttr("source")
     to_id = loss.getAttr("target")
@@ -281,6 +288,7 @@ def formula2dict(formula: str) -> Dict[str, int]:
 
 def calc_dataset_row(row, counter: Dict[Tuple[str, str], int], elemset: Dict[str, int]) -> pd.Series:
     ftree = row["ftree"]
+    spectrum_id = row["spectrum_id"]
     nodes = ftree.getAllNodes()
     edges = ftree.getAllEdges()
 
@@ -325,6 +333,7 @@ def calc_dataset_row(row, counter: Dict[Tuple[str, str], int], elemset: Dict[str
         fingerprints[fp] = row[fp]
     
     return pd.Series(dict(
+        spectrum_id = spectrum_id,
         nodes = nodes_features,
         edges = edge_features,
         fingerprints = fingerprints

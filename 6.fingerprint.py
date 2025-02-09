@@ -44,19 +44,19 @@ class Fingerprint(Process):
         self.print_queue = print_queue
 
     def run(self):
-        self.print_queue.put(("start", {'slice': self.slice}))
+        self.print_queue.put(("start", {"slice": self.slice}))
 
-        self.print_queue.put(("start_fp", {'slice': self.slice, 'slice_total': self.slice_total}))
+        self.print_queue.put(("start_fp", {"slice": self.slice, "slice_total": self.slice_total}))
         start_jvm()
         fp_data = self.spectra_slice.apply(fingerprint_row, axis=1, slice=self.slice, print_queue=self.print_queue)
         shutdown_jvm()
-        self.print_queue.put(("end_fp", {'slice': self.slice}))
+        self.print_queue.put(("end_fp", {"slice": self.slice}))
 
-        self.print_queue.put(("saving", {'slice': self.slice}))
+        self.print_queue.put(("saving", {"slice": self.slice}))
         fp_data = fp_data.to_pickle(self.fp_slices_path / f"{self.slice}.pkl")
-        self.print_queue.put(("saved", {'slice': self.slice}))
+        self.print_queue.put(("saved", {"slice": self.slice}))
 
-        self.print_queue.put(("end", {'slice': self.slice}))
+        self.print_queue.put(("end", {"slice": self.slice}))
 
 def info_printer(print_queue: Queue):
     templates = {
@@ -77,7 +77,7 @@ def info_printer(print_queue: Queue):
         if msgtype in templates:
             TS.p(templates["slice"].format(**msgdata) + templates[msgtype])
             if msgtype == "start_fp":
-                tqdm_bars[msgdata['slice']] = tqdm(desc=f"Slice {TS.blue(msgdata['slice'])}: fingerprinting", total=msgdata['slice_total'], ncols=100, position=msgdata['slice'])
+                tqdm_bars[msgdata["slice"]] = tqdm(desc=f"Slice {TS.blue(msgdata['slice'])}: fingerprinting", total=msgdata["slice_total"], ncols=100, position=msgdata["slice"])
             if msgtype == "end_fp":
                 tqdm_bars[msgdata["slice"]].close()
         elif msgtype == "progress":
